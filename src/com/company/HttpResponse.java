@@ -1,10 +1,11 @@
 package com.company;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class HttpResponse {
     private static final String NEWLINE = "\r\n";
-    private Map<String, String> headers;
+    private Map<String, String> headers = new HashMap<>();
     private int statusCode = 200;
     private String status = "OK";
     private String body = "";
@@ -29,8 +30,6 @@ public class HttpResponse {
                 .append(status)
                 .append(NEWLINE);
         for (Map.Entry<String,String> entry : headers.entrySet()){
-            System.out.println(entry);
-            System.out.println(headers.entrySet());
             builder.append(entry.getKey())
                     .append(": ")
                     .append(entry.getValue())
@@ -52,8 +51,9 @@ public class HttpResponse {
         this.statusCode = statusCode;
     }
 
-    public void setStatus(String status) {
+    public HttpResponse setStatus(String status) {
         this.status = status;
+        return this;
     }
 
     public void setBody(String body) {

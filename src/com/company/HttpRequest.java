@@ -6,13 +6,13 @@ import java.util.Map;
 
 public class HttpRequest {
     private static final String NEWLINE = "\r\n";
-    private static final String HEADER_DELIMITER = "\r\n";
+    private static final String HEADER_DELIMITER = ":";
     private static final String DELIMITER = "\r\n\r\n";
     private final String message;
     private final String url;
     private final String body;
     private final HttpMetods method;
-    private final Map<String, String> headers;
+    private Map<String, String> headers;
 
     public String getMessage() {
         return message;
@@ -43,10 +43,12 @@ public class HttpRequest {
         String[] firstLine = headers[0].split(" ");
         method = HttpMetods.valueOf(firstLine[0]); // получили метод от клиента
         url = firstLine[1];
-        this.headers = Collections.unmodifiableMap(new HashMap<>() {
+        this.headers = Collections.unmodifiableMap(
+                new HashMap<>() {
             {
                 for (int i = 1; i < headers.length; i++) {
                     String[] headerPart = headers[i].split(HEADER_DELIMITER, 2);
+
                     put(headerPart[0].trim(), headerPart[1].trim());
                 }
             }
