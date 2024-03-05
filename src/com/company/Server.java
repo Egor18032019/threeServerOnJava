@@ -25,7 +25,6 @@ public class Server {
             "Connection:close\n\n";
 
 
-
     public Server() {
 
     }
@@ -48,7 +47,7 @@ public class Server {
 
     private void handleClient(Future<AsynchronousSocketChannel> future) throws InterruptedException, ExecutionException, TimeoutException, IOException {
 //        AsynchronousSocketChannel clientChanel = future.get(55, TimeUnit.SECONDS);
-        AsynchronousSocketChannel clientChanel = future.get( );
+        AsynchronousSocketChannel clientChanel = future.get();
 
         while (clientChanel != null && clientChanel.isOpen()) {
             System.out.println("Client acsepted");
@@ -74,7 +73,7 @@ public class Server {
             }
             String body = html;
 
-            int length = (body + HEADERS).length();
+            int length = body.getBytes().length;
             String page = String.format(HEADERS, length) + body;
             ByteBuffer resp = ByteBuffer.wrap(page.getBytes());
             clientChanel.write(resp);

@@ -1,31 +1,53 @@
 package com.company;
 
+import com.company.schemas.Row;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.stream.Collectors;
 
 public class Reader {
 
-    public static String readJsonAndGiveHtml( ) throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader("file.json"));
+    public static String readJsonAndGiveHtml() throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader("catalog.json"));
         String line = reader.lines().collect(Collectors.joining());
-        String[] correctLine = line.substring(1, line.length() - 1).split("}");
-        StringBuilder str = new StringBuilder();
-        str.append("<ul>");
-        for (String point : correctLine) {
-            String correctPoint = point.substring(0);
-            str.append("<li>");
-            str.append(correctPoint);
-            str.append("</li>");
+
+        ObjectMapper mapper = new ObjectMapper();
+        Row[] rowArr = mapper.readValue(line, Row[].class);
+        StringBuilder strForHtml = new StringBuilder();
+        strForHtml.append("<table>");
+        for (Row row : rowArr) {
+            strForHtml.append("<tr>");
+            strForHtml.append("<td>");
+            strForHtml.append(row.getId());
+            strForHtml.append("</td>");
+            strForHtml.append("<td>");
+            strForHtml.append(row.getCost());
+            strForHtml.append("</td>");
+            strForHtml.append("<td>");
+            strForHtml.append(row.getName());
+            strForHtml.append("</td>");
+            strForHtml.append("<td>");
+            strForHtml.append(row.getP1());
+            strForHtml.append("</td>");
+            strForHtml.append("<td>");
+            strForHtml.append(row.getP2());
+            strForHtml.append("</td>");
+            strForHtml.append("<td>");
+            strForHtml.append(row.getP3());
+            strForHtml.append("</td>");
+            strForHtml.append("<td>");
+            strForHtml.append(row.getZalog());
+            strForHtml.append("</td>");
+            strForHtml.append("</tr>");
         }
+        strForHtml.append("</table>");
 
-
-        str.append("</ul>");
 
         reader.close();
-         return "<!DOCTYPE html>\n" +
+        return "<!DOCTYPE html>\n" +
                 "<html lang=\"en\">\n" +
                 "<head>\n" +
                 "    <meta charset=\"utf-8\" />\n" +
@@ -34,14 +56,17 @@ public class Reader {
                 "         font-size: 120%;\n" +
                 "         font-family: Verdana, Arial, Helvetica, sans-serif;\n" +
                 "         color: #333366;\n" +
-                "        }\n" +
+                "           }\n" +
+                "       table, th, td {\n" +
+                "       border: 1px solid;\n" +
+                "       }" +
                 "    </style>\n" +
                 "    <title>Табличка</title>\n" +
                 "\n" +
                 "</head>\n" +
                 "<body>\n" +
                 "<h1>Hello, world!</h1>\n" +
-                str.toString() +
+                strForHtml +
                 "</body>\n" +
                 "</html>\n";
     }
