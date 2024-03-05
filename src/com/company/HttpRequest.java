@@ -39,21 +39,20 @@ public class HttpRequest {
         String[] parts = message.split(DELIMITER);
 
         String head = parts[0];
-        String[] headers = head.split(NEWLINE);
-        String[] firstLine = headers[0].split(" ");
+        String[] headersArray = head.split(NEWLINE);
+        String[] firstLine = headersArray[0].split(" ");
         method = HttpMetods.valueOf(firstLine[0]); // получили метод от клиента
         url = firstLine[1];
-        this.headers = Collections.unmodifiableMap(new HashMap<>() {
-            {
-                for (int i = 1; i < headers.length; i++) {
-                    String[] headerPart = headers[i].split(HEADER_DELIMITER, 2);
-                    put(headerPart[0].trim(), headerPart[1].trim());
-                }
-            }
-        });
+        this.headers = new HashMap<>();
+
+        for (int i = 1; i < headersArray.length; i++) {
+            String[] headerPart = headersArray[i].split(":", 2);
+            headers.put(headerPart[0].trim(), headerPart[1].trim());
+
+        }
 
         String bodyLength = this.headers.get("Content-Length");
         int length = bodyLength != null ? Integer.parseInt(bodyLength) : 0;
-        this.body = parts.length>1 ? parts[0].strip().substring(0,length): " ";
+        this.body = parts.length > 1 ? parts[0].strip().substring(0, length) : " ";
     }
 }

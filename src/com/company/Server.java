@@ -16,22 +16,24 @@ import java.util.concurrent.TimeoutException;
 public class Server {
     private AsynchronousServerSocketChannel server;
     private final static int BUFFER_SIZE = 256;
-    private final int PORT = 888;
-    private final HttpHandler handler;
+    private final int PORT = 8080;
+
     private final static String HEADERS = "HTTP/1.1 200 OK \r\n" +
             "Server: threeServerOnJava\n" +
             "Content-Type: text/html\n" +
             "Content-Length: %s\n" +
             "Connection:close\n\n";
 
-    public Server(HttpHandler handler) {
-        this.handler = handler;
+
+
+    public Server() {
+
     }
 
     public void bootstrap() {
         try {
             server = AsynchronousServerSocketChannel.open();
-            server.bind(new InetSocketAddress("127.0.0.1", 888));
+            server.bind(new InetSocketAddress("127.0.0.1", PORT));
             System.out.println("Server started on: " + PORT);
             while (true) {
                 Future<AsynchronousSocketChannel> future = server.accept();
@@ -39,19 +41,14 @@ public class Server {
                 handleClient(future);
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
+        } catch (IOException | ExecutionException | InterruptedException | TimeoutException e) {
             e.printStackTrace();
         }
     }
 
     private void handleClient(Future<AsynchronousSocketChannel> future) throws InterruptedException, ExecutionException, TimeoutException, IOException {
-        AsynchronousSocketChannel clientChanel = future.get(55, TimeUnit.SECONDS);
+//        AsynchronousSocketChannel clientChanel = future.get(55, TimeUnit.SECONDS);
+        AsynchronousSocketChannel clientChanel = future.get( );
 
         while (clientChanel != null && clientChanel.isOpen()) {
             System.out.println("Client acsepted");
@@ -69,12 +66,16 @@ public class Server {
                 buffer.clear();
             }
 
+            String html;
+            try {
+                html = Reader.readJsonAndGiveHtml();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            String body = html;
 
-            HttpRequest request = new HttpRequest(builder.toString());
-            HttpResponse respons = new HttpResponse();
-            String body = this.handler.handle(request, respons);
-
-            String page = String.format(HEADERS, body.length()) + body;
+            int length = (body + HEADERS).length();
+            String page = String.format(HEADERS, length) + body;
             ByteBuffer resp = ByteBuffer.wrap(page.getBytes());
             clientChanel.write(resp);
 

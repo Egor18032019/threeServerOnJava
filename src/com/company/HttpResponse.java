@@ -1,5 +1,6 @@
 package com.company;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class HttpResponse {
@@ -10,6 +11,7 @@ public class HttpResponse {
     private String body = "";
 
     public HttpResponse() {
+        this.headers = new HashMap<>();
         this.headers.put("Server","threeServerOnJava");
         this.headers.put("Connection","Close");
     }
