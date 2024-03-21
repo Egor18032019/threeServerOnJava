@@ -7,10 +7,8 @@ import java.nio.CharBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class Server {
@@ -18,7 +16,7 @@ public class Server {
     private final static int BUFFER_SIZE = 256;
     private final int PORT = 8080;
 
-    private static String HEADERS = "HTTP/1.1 200 OK \r\n" +
+    private final static String HEADERS = "HTTP/1.1 200 OK \r\n" +
             "Server: threeServerOnJava\n" +
             "Content-Type: text/html\n" +
             "Content-Length: %s\n" +
@@ -74,9 +72,9 @@ public class Server {
             String body = html;
 // и добавляем в хедер дату модификация файла
             String lastModified ="Last-modified: "+ Reader.giveMeLastModifiedForHeader();
-            HEADERS = HEADERS + lastModified + "\n\n";
+            String headerForThis = HEADERS + lastModified + "\n\n";
             int length = body.getBytes().length;
-            String page = String.format(HEADERS, length) + body;
+            String page = String.format(headerForThis, length) + body;
             ByteBuffer resp = ByteBuffer.wrap(page.getBytes());
             clientChanel.write(resp);
 
