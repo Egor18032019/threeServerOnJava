@@ -6,12 +6,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
+import java.util.Date;
 
 public class Reader {
+    private static final String fileName = "catalog.json";
 
     public static String readJsonAndGiveHtml() throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader("catalog.json"));
+
+        BufferedReader reader = new BufferedReader(new FileReader(fileName));
+
         String line = reader.lines().collect(Collectors.joining());
 
         ObjectMapper mapper = new ObjectMapper();
@@ -45,7 +57,6 @@ public class Reader {
         }
         strForHtml.append("</table>");
 
-
         reader.close();
         return "<!DOCTYPE html>\n" +
                 "<html lang=\"en\">\n" +
@@ -69,5 +80,25 @@ public class Reader {
                 strForHtml +
                 "</body>\n" +
                 "</html>\n";
+    }
+
+    public static String giveMeLastModifiedForHeader() {
+        String lastModified = "";
+        try {
+            Path file = Paths.get(fileName);
+            BasicFileAttributes attr =
+                    Files.readAttributes(file, BasicFileAttributes.class);
+            String someString = attr.lastModifiedTime().toString();
+            DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'");
+            format.setTimeZone(TimeZone.getTimeZone("UTC"));
+            Date date = format.parse(someString);   // получаем дату из строки
+            lastModified = date.toString();
+//            lastModified = format.format(date);
+        } catch (IOException e) {
+            System.out.println(e.getMessage() + "Не смогли получить дату.");
+        } catch (ParseException e) {
+            System.out.println(e.getMessage() + "Не смогли распарсить дату.");
+        }
+        return lastModified;
     }
 }

@@ -31,8 +31,6 @@ public class HttpResponse {
                 .append(status)
                 .append(NEWLINE);
         for (Map.Entry<String,String> entry : headers.entrySet()){
-            System.out.println(entry);
-            System.out.println(headers.entrySet());
             builder.append(entry.getKey())
                     .append(": ")
                     .append(entry.getValue())

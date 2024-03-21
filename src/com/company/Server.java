@@ -18,11 +18,11 @@ public class Server {
     private final static int BUFFER_SIZE = 256;
     private final int PORT = 8080;
 
-    private final static String HEADERS = "HTTP/1.1 200 OK \r\n" +
+    private static String HEADERS = "HTTP/1.1 200 OK \r\n" +
             "Server: threeServerOnJava\n" +
             "Content-Type: text/html\n" +
             "Content-Length: %s\n" +
-            "Connection:close\n\n";
+            "Connection:close\n";
 
 
     public Server() {
@@ -32,7 +32,7 @@ public class Server {
     public void bootstrap() {
         try {
             server = AsynchronousServerSocketChannel.open();
-            server.bind(new InetSocketAddress("127.0.0.1", PORT));
+            server.bind(new InetSocketAddress("0.0.0.0", PORT));
             System.out.println("Server started on: " + PORT);
             while (true) {
                 Future<AsynchronousSocketChannel> future = server.accept();
@@ -72,7 +72,9 @@ public class Server {
                 throw new RuntimeException(e);
             }
             String body = html;
-
+// и добавляем в хедер дату модификация файла
+            String lastModified ="Last-modified: "+ Reader.giveMeLastModifiedForHeader();
+            HEADERS = HEADERS + lastModified + "\n\n";
             int length = body.getBytes().length;
             String page = String.format(HEADERS, length) + body;
             ByteBuffer resp = ByteBuffer.wrap(page.getBytes());
