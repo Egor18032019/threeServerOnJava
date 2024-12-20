@@ -7,6 +7,8 @@ import java.nio.CharBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
@@ -54,25 +56,26 @@ public class Server {
             boolean keepReading = true;
             while (keepReading) {
                 int readResult = clientChanel.read(buffer).get(); // прочитали
-                System.out.println("clientChanel.read(buffer).get()");
                 keepReading = readResult == BUFFER_SIZE;
                 buffer.flip(); //вернулись в начало
                 CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
                 builder.append(charBuffer);
 //                    buffer.flip(); // вернули курсор на позиицию
                 buffer.clear();
+
             }
 
-            String html;
-            try {
-                html = Reader.readJsonAndGiveHtml();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            String body = html;
+            String request = builder.toString();
+            System.out.println(request);
+            Map<String, String> queryParams = extractQueryParameters(request);
+            int sum = calculateSum(queryParams);
+
+
+            String body =  String.valueOf(sum);
 // и добавляем в хедер дату модификация файла
-            String lastModified ="Last-modified: "+ Reader.giveMeLastModifiedForHeader();
+            String lastModified = "Last-modified: " + new java.util.Date().toString();
             String headerForThis = HEADERS + lastModified + "\n\n";
+            System.out.println(headerForThis);
             int length = body.getBytes().length;
             String page = String.format(headerForThis, length) + body;
             ByteBuffer resp = ByteBuffer.wrap(page.getBytes());
@@ -81,4 +84,38 @@ public class Server {
             clientChanel.close();
         }
     }
+
+    private int calculateSum(Map<String, String> queryParams) {
+        int sum = 0;
+        for (String value : queryParams.values()) {
+            sum += Integer.parseInt(value);
+        }
+        return sum;
+    }
+
+    private Map<String, String> extractQueryParameters(String request) {
+        //GET /?a=2&b=3 HTTP/1.1
+        Map<String, String> params = new HashMap<>();
+        String[] lines = request.split("\r\n");
+        for (String line : lines) {
+            if (line.startsWith("GET")) {
+                String[] parts = line.split("\\?");
+//                a=2&b=3 HTTP/1.1
+                if (parts.length > 1) {
+                    String queryString = parts[1];
+                    String[] keyValuePairs = queryString.split("&");
+//                    a=2, b=3  HTTP/1.1
+                    for (String pair : keyValuePairs) {
+                        String[] kv = pair.split("=");
+//                        b , 3  HTTP/1.1
+                        if (kv.length == 2) {
+                            params.put(kv[0], kv[1].split(" ")[0]);
+                        }
+                    }
+                }
+            }
+        }
+        return params;
+    }
+
 }
