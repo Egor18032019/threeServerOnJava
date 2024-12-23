@@ -16,5 +16,17 @@
 ~~~~
 * Примеры запросов:
 ```shell
-curl -i -X GET 'http://localhost:8080?a=2&b=23&c=121111'
+curl -i -X GET 'http://localhost:8080/plus?a=2&b=23&c=121111'
+```
+```shell
+curl -i -X GET 'http://localhost:8080/api/plus?a=2&b=23&c=121111'
+```
+```shell
+curl -i -X GET 'http://localhost:8080/minus?a=2&b=23&c=121111'
+```
+```shell
+curl -i -X GET 'http://localhost:8080/multiply?a=2&b=3'
+```
+```shell
+curl -i -X GET 'http://localhost:8080/divide?a=6&b=3'
 ```

@@ -15,15 +15,20 @@ import java.util.concurrent.TimeoutException;
 
 public class Server {
     private AsynchronousServerSocketChannel server;
-    private final static int BUFFER_SIZE = 256;
+    private final static int BUFFER_SIZE = 1024;
     private final int PORT = 8080;
 
-    private final static String HEADERS = "HTTP/1.1 200 OK \r\n" +
+    private final static String HEADERS_FOR_HTML = "HTTP/1.1 200 OK \r\n" +
             "Server: threeServerOnJava\n" +
             "Content-Type: text/html\n" +
             "Content-Length: %s\n" +
             "Connection:close\n";
 
+    private final static String HEADERS_FOR_JSON = "HTTP/1.1 200 OK \r\n" +
+            "Server: threeServerOnJava\n" +
+            "Content-Type: text/json\n" +
+            "Content-Length: %s\n" +
+            "Connection:close\n";
 
     public Server() {
 
@@ -56,35 +61,63 @@ public class Server {
             boolean keepReading = true;
             while (keepReading) {
                 int readResult = clientChanel.read(buffer).get(); // прочитали
+                if (readResult == -1 || !buffer.hasRemaining()) {
+                    // Если ничего не было прочитано или буфер пуст
+                    break;
+                }
                 keepReading = readResult == BUFFER_SIZE;
                 buffer.flip(); //вернулись в начало
                 CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
                 builder.append(charBuffer);
-//                    buffer.flip(); // вернули курсор на позиицию
                 buffer.clear();
 
             }
-
             String request = builder.toString();
+            System.out.println("request");
             System.out.println(request);
+
             Map<String, String> queryParams = extractQueryParameters(request);
-            int sum = calculateSum(queryParams);
 
-
-            String body =  String.valueOf(sum);
-// и добавляем в хедер дату модификация файла
-            String lastModified = "Last-modified: " + new java.util.Date().toString();
-            String headerForThis = HEADERS + lastModified + "\n\n";
-            System.out.println(headerForThis);
-            int length = body.getBytes().length;
-            String page = String.format(headerForThis, length) + body;
-            ByteBuffer resp = ByteBuffer.wrap(page.getBytes());
-            clientChanel.write(resp);
-
-            clientChanel.close();
+            int sum = 0;
+            if (request.contains("plus")) {
+                sum = calculateSum(queryParams);
+            }
+            if (request.contains("minus")) {
+                sum = calculateMinus(queryParams);
+            }
+            if (request.contains("multiply")) {
+                sum = multiply(queryParams);
+            }
+            String body = String.valueOf(sum);
+            if (request.contains("divide")) {
+                int b = Integer.parseInt(queryParams.get("b"));
+                if (b == 0) {
+                    body = "Error";
+                } else {
+                    body = String.valueOf(divide(queryParams));
+                }
+            }
+            if (request.contains("api")) {
+                String headerForThis = HEADERS_FOR_JSON + "\n";
+                String json =  "{\"result\": " + body + "}";
+                sendResponse(clientChanel, headerForThis, json);
+            } else {
+                String headerForThis = HEADERS_FOR_HTML + "\n";
+                sendResponse(clientChanel, headerForThis, body);
+            }
         }
     }
 
+    private double divide(Map<String, String> queryParams) {
+        return (double) Integer.parseInt(queryParams.get("a")) / Integer.parseInt(queryParams.get("b"));
+    }
+    private int multiply(Map<String, String> queryParams) {
+        return Integer.parseInt(queryParams.get("a")) * Integer.parseInt(queryParams.get("b"));
+    }
+    private int calculateMinus(Map<String, String> queryParams) {
+
+        return Integer.parseInt(queryParams.get("a")) - Integer.parseInt(queryParams.get("b"));
+    }
     private int calculateSum(Map<String, String> queryParams) {
         int sum = 0;
         for (String value : queryParams.values()) {
@@ -92,7 +125,6 @@ public class Server {
         }
         return sum;
     }
-
     private Map<String, String> extractQueryParameters(String request) {
         //GET /?a=2&b=3 HTTP/1.1
         Map<String, String> params = new HashMap<>();
@@ -116,6 +148,14 @@ public class Server {
             }
         }
         return params;
+    }
+
+    private void sendResponse(AsynchronousSocketChannel clientChanel, String header, String responseBody) throws IOException {
+        int length = responseBody.getBytes().length;
+        String page = String.format(header, length) + responseBody;
+        ByteBuffer resp = ByteBuffer.wrap(page.getBytes());
+        clientChanel.write(resp);
+        clientChanel.close();
     }
 
 }
