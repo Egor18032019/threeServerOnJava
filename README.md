@@ -1,5 +1,5 @@
-"# threeServerOnJava" 
-
+"# threeServerOnJava"
+Сервер калькулятор на java без спринга
 
 В IntelIJ с помощью комбинации клавиш CTRL+ALT+SHIFT+S попадаем в структуру проекта. 
 Заходим в пункт Artifacts Нажимаем на Add (зеленый плюс), 
